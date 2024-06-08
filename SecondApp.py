@@ -154,7 +154,7 @@ engine = create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{databa
 st.title("PhonePe Pulse Data Visualization")
 
 # Dropdown to select the insight
-insight = st.selectbox("Select Insight", ["User Growth Over Time", "Most Popular Districts", "App Opens", "Brand Market Share", "Top Brands", "Brand Correlation", "Regional Popularity by Brand", "Yearly Growth by Brand","Top States by Transactions","Top Districts by Users","Yearly User Growth","Top Pincodes by Transaction Value"])
+insight = st.selectbox("Select Insight", ["User Growth Over Time", "Most Popular Districts", "App Opens", "Brand Market Share", "Top Brands", "Regional Popularity by Brand", "Yearly Growth by Brand","Top States by Transactions","Top Districts by Users","Yearly User Growth","Top Pincodes by Transaction Value"])
 
 # Fetch data and display the selected insight
 if insight == "User Growth Over Time":
@@ -217,27 +217,6 @@ elif insight == "Top Brands":
     fig = px.bar(df, x='Brand_Name', y='Total_Users', title='Top Brands')
     st.plotly_chart(fig)
 
-elif insight == "Brand Correlation":
-    query = """
-    SELECT 
-        au.Brand_Name,
-        SUM(au.Num_of_Reg_Users) AS Total_Users,
-        SUM(at.Transaction_Count) AS Total_Transactions,
-        SUM(at.Transaction_Amount) AS Total_Amount
-    FROM 
-        agg_user au
-    JOIN 
-        agg_transaction at
-    ON 
-        au.State = at.State AND au.Year = at.Year AND au.Quarter = at.Quarter
-    GROUP BY 
-        au.Brand_Name
-    ORDER BY 
-        Total_Transactions DESC;
-    """
-    df = pd.read_sql(query, engine)
-    fig = px.scatter(df, x='Total_Users', y='Total_Transactions', size='Total_Amount', color='Brand_Name', title='Brand Correlation')
-    st.plotly_chart(fig)
 
 elif insight == "Regional Popularity by Brand":
     query = """
