@@ -176,13 +176,6 @@ elif insight ==  "Number of registered users for each state during the selected 
     # Dropdown to select the quarter based on the selected year
     quarters = ["Whole_Year"] + fetch_quarters(selected_year)
     selected_quarter = st.selectbox("Select Quarter", quarters, key="quarter_select")
-
-    state_query = "SELECT DISTINCT State FROM map_user"
-    states_df = pd.read_sql(state_query, engine)
-    states = states_df['State'].tolist()
-
-    # Create a dropdown menu for state selection
-    selected_state = st.selectbox('Select a state', states)
     
     if selected_year == "Complete Data":
         query = """
