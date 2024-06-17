@@ -211,7 +211,7 @@ elif insight == "User Growth in the given time period":
     df = pd.read_sql(query, engine)
     
     # Create the bar chart
-    title = "User Growth by State"
+    title = "User Growth in the"
     if selected_year != "Complete Data":
         title += f" for {selected_year}"
         if selected_quarter != "Whole_Year":
