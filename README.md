@@ -1,9 +1,17 @@
 # Project_TWO
-The code creates a Streamlit app to visualize PhonePe Pulse data with Plotly, connecting to a MySQL database to fetch insights like user growth, popular districts, app opens, brand market share, and transactions. It includes choropleth maps overlaid on a GeoJSON map of India for geographical insights, providing an interactive data display.
+The code creates a Streamlit app to visualize PhonePe Pulse data with Plotly, connecting to a MySQL database to fetch insights like"Number Of Registered_Users for the selected time period", 
+    "User Growth in the given time period",  
+    "Brand Market Share", 
+    "Yearly Growth by Brand",
+    "The First six states which had highest values of transaction amount", 
+    "The First five states which had least values of transaction amount", 
+    "Growth of Registerd_Users for each State over the time period", 
+    "The First six states which had highest number of total transactions",
+    "The First six states which had least number of total transactions",
+    "The highest transaction type count in each state".
+    It includes choropleth maps overlaid on a GeoJSON map of India for geographical insights, providing an interactive data display.
 
 #SecondApp.py
-Sure, let's break down the provided code step by step:
-
 1. Importing Libraries:
 
     - **pandas**: A library for data manipulation and analysis.
