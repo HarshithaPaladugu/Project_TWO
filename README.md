@@ -43,7 +43,7 @@ Sure, let's break down the provided code step by step:
 9. Fetch Data and Display the Selected Insight:
     -Number Of Registered Users for the selected time period:
         - Retrieves and displays the number of registered users for the selected time period.
-    - User Growth by State:
+    - User Growth in the given time period:
         - generates a bar chart displaying the total number of registered users by state, allowing users to filter the data by year and 
           quarter for a detailed view of user growth trends.
     - Brand Market Share:
@@ -60,8 +60,7 @@ Sure, let's break down the provided code step by step:
         - Generates a choropleth map displaying the bottom states by number of transactions.
     - The highest transaction type count in each state:
         - Generates a choropleth map showing the highest transaction type count for each state.
-    - Yearly Growth by Brand:
-        - Displays the yearly growth by brand using a line chart.
+   
 
 #SecallTables.ipynb
 This file contains the code for the creation of a database and creation of tables into the database and insert data into those tables.
