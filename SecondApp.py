@@ -211,11 +211,11 @@ elif insight == "User Growth in the given time period":
     df = pd.read_sql(query, engine)
     
     # Create the bar chart
-    title = "User Growth in the"
+    title = "User Growth"
     if selected_year != "Complete Data":
-        title += f" for {selected_year}"
+        title += f" in the year {selected_year}"
         if selected_quarter != "Whole_Year":
-            title += f" Q{selected_quarter}"
+            title += f" for Q{selected_quarter}"
     
     fig = px.bar(df, x='Year', y='Total_Users', color='State', barmode='group', title=title, labels={'Total_Users': 'Total Users'})
     st.plotly_chart(fig)
