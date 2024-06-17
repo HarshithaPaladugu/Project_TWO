@@ -43,8 +43,9 @@ Sure, let's break down the provided code step by step:
 9. Fetch Data and Display the Selected Insight:
     -Number Of Registered Users for the selected time period:
         - Retrieves and displays the number of registered users for the selected time period.
-    - Most Popular Districts:
-        - Generates a line chart showing the growth of users by state over the years.
+    - User Growth by State:
+        - generates a bar chart displaying the total number of registered users by state, allowing users to filter the data by year and 
+          quarter for a detailed view of user growth trends.
     - Brand Market Share:
         - Displays the brand market share and a pie chart for the average market share for the selected brand.
     - Growth of Registered Users for each State over the time period:
