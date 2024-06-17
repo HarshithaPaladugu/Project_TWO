@@ -96,7 +96,7 @@ st.title("PhonePe Pulse Data Visualization")
 # Dropdown to select the insight
 insight = st.selectbox("Select Insight", [
     "Number Of Registered_Users for the selected time period", 
-    "User Growth in the given time period",  
+    "Number of registered users for each state during the selected time period",  
     "Brand Market Share", 
     "Yearly Growth by Brand",
     "The First six states which had highest values of transaction amount", 
@@ -168,7 +168,7 @@ if insight == "Number Of Registered_Users for the selected time period":
         st.header(f"Number Of Registered Users for {title}")
         st.subheader(f"Total Number of Registered Users: {total_users}")
 
-elif insight == "User Growth in the given time period":
+elif insight ==  "Number of registered users for each state during the selected time period":
     # Dropdown to select the year
     years = ["Complete Data"] + fetch_years()
     selected_year = st.selectbox("Select Year", years, key="year_select")
@@ -211,7 +211,7 @@ elif insight == "User Growth in the given time period":
     df = pd.read_sql(query, engine)
     
     # Create the bar chart
-    title = "User Growth"
+    title = "Registered users for each state"
     if selected_year != "Complete Data":
         title += f" in the year {selected_year}"
         if selected_quarter != "Whole_Year":
