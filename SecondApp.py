@@ -88,7 +88,7 @@ def fetch_user_data(selected_year, selected_quarter):
     return df
 
 # Streamlit application
-st.title("PhonePe Pulse Data Visualization")
+st.title("PhonePe Pulse Data Visualization and Exploration")
 
 
 
