@@ -96,7 +96,7 @@ st.title("PhonePe Pulse Data Visualization")
 # Dropdown to select the insight
 insight = st.selectbox("Select Insight", [
     "Number Of Registered_Users for the selected time period", 
-    "Most Popular Districts",  
+    "User Growth by State",  
     "Brand Market Share", 
     "Yearly Growth by Brand",
     "The First six states which had highest values of transaction amount", 
@@ -168,21 +168,22 @@ if insight == "Number Of Registered_Users for the selected time period":
         st.header(f"Number Of Registered Users for {title}")
         st.subheader(f"Total Number of Registered Users: {total_users}")
 
-elif insight == "Most Popular Districts":
+elif insight == "User Growth by State":
     # Dropdown to select the year
     years = ["Complete Data"] + fetch_years()
     selected_year = st.selectbox("Select Year", years, key="year_select")
 
-# Dropdown to select the quarter based on the selected year
-    quarters =["Whole_Year"] + fetch_quarters(selected_year)
+    # Dropdown to select the quarter based on the selected year
+    quarters = ["Whole_Year"] + fetch_quarters(selected_year)
     selected_quarter = st.selectbox("Select Quarter", quarters, key="quarter_select")
 
     state_query = "SELECT DISTINCT State FROM map_user"
     states_df = pd.read_sql(state_query, engine)
     states = states_df['State'].tolist()
 
-# Create a dropdown menu for state selection
+    # Create a dropdown menu for state selection
     selected_state = st.selectbox('Select a state', states)
+    
     if selected_year == "Complete Data":
         query = """
         SELECT Year, State, SUM(Num_of_reg_users) AS Total_Users
@@ -209,14 +210,14 @@ elif insight == "Most Popular Districts":
     
     df = pd.read_sql(query, engine)
     
-    # Create the line chart
-    title = "Growth of Users by State Over the Years"
+    # Create the bar chart
+    title = "User Growth by State"
     if selected_year != "Complete Data":
         title += f" for {selected_year}"
         if selected_quarter != "Whole_Year":
             title += f" Q{selected_quarter}"
     
-    fig = px.line(df, x='Year', y='Total_Users', color='State', title=title, labels={'Total_Users': 'Total Users'})
+    fig = px.bar(df, x='Year', y='Total_Users', color='State', barmode='group', title=title, labels={'Total_Users': 'Total Users'})
     st.plotly_chart(fig)
 
 
