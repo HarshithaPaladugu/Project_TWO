@@ -332,7 +332,7 @@ elif insight == "The First six states which had highest values of transaction am
         locations='State',
         color='Total_Transaction_Value',
         color_continuous_scale='Viridis',
-        title='Top 5 States by Transaction Value',
+        title='Top 6 States by Transaction Value',
         labels={'Total_Transaction_Value': 'Total Transaction Value'},
         scope="asia"
     )
@@ -420,7 +420,7 @@ elif insight == "The First six states which had highest number of total transact
         locations='State',
         color='Total_Transaction_Number',
         color_continuous_scale='Viridis',
-        title='Top 5 States by Number of Transactions',
+        title='Top 6 States by Number of Transactions',
         labels={'Total_Transaction_Number': 'Total Number of Transactions'},
         scope="asia"
     )
@@ -464,7 +464,7 @@ elif insight == "The First six states which had least number of total transactio
         locations='State',
         color='Total_Transaction_Number',
         color_continuous_scale='Viridis',
-        title='Top 5 States by Number of Transactions',
+        title='Bottom 6 States by Number of Transactions',
         labels={'Total_Transaction_Number': 'Total Number of Transactions'},
         scope="asia"
     )
