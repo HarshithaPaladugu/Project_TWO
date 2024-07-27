@@ -500,4 +500,136 @@ The given code processes JSON files containing user data by device, transforms t
     ```
     - **Purpose:** Reopen the connection to the MySQL database using SQLAlchemy, read the `agg_user` table into a Pandas DataFrame, print the DataFrame, and close the connection.
 
+### Workflow 
+
+1. **Import Necessary Libraries:**
+   ```python
+   import os
+   import json
+   import pandas as pd
+   import mysql.connector
+   from sqlalchemy import create_engine
+   ```
+   - **Purpose:** Import libraries required for file handling (`os`), JSON processing (`json`), data manipulation (`pandas`), and database interaction (`mysql.connector` and `sqlalchemy`).
+
+2. **Define MySQL Connection Details:**
+   ```python
+   # MySQL connection details
+   host = 'localhost'
+   user = 'root'
+   password = '1611'
+   database = 'PhonePePulse_DVandExp'
+   ```
+   - **Purpose:** Set up connection parameters to connect to the MySQL database.
+
+3. **Create a Connection to MySQL:**
+   ```python
+   # Create a connection to MySQL
+   conn = mysql.connector.connect(
+       host=host,
+       user=user,
+       password=password,
+       database=database
+   )
+   ```
+   - **Purpose:** Establish a connection to the MySQL database using the specified parameters.
+
+4. **Create SQLAlchemy Engine:**
+   ```python
+   engine = create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{database}")
+   ```
+   - **Purpose:** Create an SQLAlchemy engine to facilitate interaction with the MySQL database for reading and writing operations.
+
+5. **Define Path to JSON Files and Dictionary to Store Data:**
+   ```python
+   # Define the path to the directory containing JSON files
+   path = "C:\\Users\\HP\\GUVI PROJ\\pulse\\data\\map\\transaction\\hover\\country\\india\\state\\"
+
+   # Dictionary to store extracted data
+   clm_map_ag = {'State': [], 'Year': [], 'Quarter': [], 'District': [], 'Num_of_Transactions_in_that_Yr': [], 'Total_Trans_iin_that_year': []}
+   ```
+   - **Purpose:** Specify the directory containing JSON files and initialize a dictionary to store the extracted data.
+
+6. **Define Helper Function for State and District Name Conversion:**
+   ```python
+   # Function to convert state names for geovisualization
+   def convert_state_name(input_string):
+       # Replace hyphens and special characters with spaces, then capitalize each word
+       formatted_string = input_string.replace('-', ' ').replace('&', '&')
+       words = formatted_string.split()
+       capitalized_words = [word.capitalize() for word in words]
+       return ' '.join(capitalized_words)
+   ```
+   - **Purpose:** Define a function to format state and district names by replacing hyphens with spaces and capitalizing each word for better readability and consistency in visualizations.
+
+7. **Iterate Through JSON Files and Extract Data:**
+   ```python
+   # Iterate through each state directory
+   for state in os.listdir(path):
+       state_path = os.path.join(path, state)
+       if os.path.isdir(state_path):
+           for year in os.listdir(state_path):
+               year_path = os.path.join(state_path, year)
+               if os.path.isdir(year_path):
+                   for quarter_file in os.listdir(year_path):
+                       quarter_path = os.path.join(year_path, quarter_file)
+                       if quarter_file.endswith('.json'):
+                           with open(quarter_path, 'r') as file:
+                               data = json.load(file)
+                               for item in data['data']['hoverDataList']:
+                                   name = item['name']
+                                   metric = item['metric'][0]
+                                   count = metric['count']
+                                   amount = metric['amount']
+                                   clm_map_ag['State'].append(state)
+                                   clm_map_ag['Year'].append(year)
+                                   clm_map_ag['Quarter'].append(int(quarter_file.strip('.json')))
+                                   clm_map_ag['District'].append(name)
+                                   clm_map_ag['Num_of_Transactions_in_that_Yr'].append(count)
+                                   clm_map_ag['Total_Trans_iin_that_year'].append(amount)
+   ```
+   - **Purpose:** Traverse the directory structure to open and read each JSON file, extract relevant data, and populate the dictionary. This process ensures that all JSON files are processed, and their data is aggregated.
+
+8. **Create DataFrame and Apply Name Conversion:**
+   ```python
+   # Create DataFrame
+   Map_Trans = pd.DataFrame(clm_map_ag)
+
+   # Update the 'State' and 'District' columns to be suitable for geovisualization
+   Map_Trans['State'] = Map_Trans['State'].apply(convert_state_name)
+   Map_Trans['District'] = Map_Trans['District'].apply(convert_state_name)
+   ```
+   - **Purpose:** Convert the dictionary to a Pandas DataFrame and apply the name conversion function to the 'State' and 'District' columns to ensure they are formatted correctly for visualization.
+
+9. **Store DataFrame in MySQL Table:**
+   ```python
+   # Store the updated DataFrame into the MySQL table
+   table_name = 'map_trans'
+   Map_Trans.to_sql(name=table_name, con=engine, if_exists='replace', index=False)
+   ```
+   - **Purpose:** Save the DataFrame to a MySQL table named `map_trans`. The `if_exists='replace'` parameter replaces the table if it already exists, ensuring the table is updated with the latest data.
+
+10. **Close Initial MySQL Connection:**
+    ```python
+    # Close the initial MySQL connection
+    conn.close()
+    ```
+    - **Purpose:** Close the initial MySQL connection established at the start.
+
+11. **Reopen Connection Using SQLAlchemy and Read Table:**
+    ```python
+    # Reopen the connection using SQLAlchemy for reading the table
+    conn = engine.connect()
+
+    # Read the table into a DataFrame
+    df = pd.read_sql_table(table_name, con=conn)
+
+    # Display the DataFrame
+    print(df)
+
+    # Close the connection
+    conn.close()
+    ```
+    - **Purpose:** Reopen the connection to the MySQL database using SQLAlchemy, read the `map_trans` table into a DataFrame, print the DataFrame to verify the data, and close the connection.
+
 
