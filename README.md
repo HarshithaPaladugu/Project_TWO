@@ -632,4 +632,126 @@ The given code processes JSON files containing user data by device, transforms t
     ```
     - **Purpose:** Reopen the connection to the MySQL database using SQLAlchemy, read the `map_trans` table into a DataFrame, print the DataFrame to verify the data, and close the connection.
 
+### Workflow 
+1. **Import Necessary Libraries:**
+   ```python
+   import os
+   import json
+   import pandas as pd
+   import mysql.connector
+   from sqlalchemy import create_engine
+   ```
+   - **Purpose:** Import libraries needed for handling files (`os`), processing JSON data (`json`), manipulating data (`pandas`), and interacting with MySQL (`mysql.connector` and `sqlalchemy`).
+
+2. **Define MySQL Connection Details:**
+   ```python
+   # MySQL connection details
+   host = 'localhost'
+   user = 'root'
+   password = '1611'
+   database = 'PhonePePulse_DVandExp'
+   ```
+   - **Purpose:** Set up parameters for connecting to the MySQL database.
+
+3. **Create MySQL Connection:**
+   ```python
+   # Create a connection to MySQL
+   conn = mysql.connector.connect(
+       host=host,
+       user=user,
+       password=password,
+       database=database
+   )
+   ```
+   - **Purpose:** Establish a connection to the MySQL database using the specified credentials.
+
+4. **Create SQLAlchemy Engine:**
+   ```python
+   engine = create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{database}")
+   ```
+   - **Purpose:** Set up an SQLAlchemy engine to facilitate interaction with the MySQL database for reading and writing operations.
+
+5. **Define Helper Function for State and District Name Conversion:**
+   ```python
+   def convert_state_name(input_string):
+       # Replace hyphens and special characters with spaces, then capitalize each word
+       formatted_string = input_string.replace('-', ' ').replace('&', '&')
+       words = formatted_string.split()
+       capitalized_words = [word.capitalize() for word in words]
+       return ' '.join(capitalized_words)
+   ```
+   - **Purpose:** Define a function to format state and district names by replacing hyphens with spaces and capitalizing each word. This ensures consistency and readability in visualizations.
+
+6. **Define Path and Extract Data from JSON Files:**
+   ```python
+   path = "C:\\Users\\HP\\GUVI PROJ\\pulse\\data\\map\\user\\hover\\country\\india\\state\\"
+   clm_map_user = {'State': [], 'Dist_Name': [], 'Year': [], 'Quarter': [], 'Num_of_reg_users': [], 'Num_of_app_opens': []}
+   
+   for state in os.listdir(path):
+       state_path = os.path.join(path, state)
+       if os.path.isdir(state_path):
+           for year in os.listdir(state_path):
+               year_path = os.path.join(state_path, year)
+               if os.path.isdir(year_path):
+                   for quarter_file in os.listdir(year_path):
+                       quarter_path = os.path.join(year_path, quarter_file)
+                       if quarter_file.endswith('.json'):
+                           with open(quarter_path, 'r') as file:
+                               data = json.load(file)
+                               hover_data = data['data']['hoverData']
+                               for district, metrics in hover_data.items():
+                                   reg_users = metrics['registeredUsers']
+                                   app_opens = metrics['appOpens']
+                                   dt_name = district
+                                   clm_map_user['State'].append(state)
+                                   clm_map_user['Year'].append(year)
+                                   clm_map_user['Dist_Name'].append(dt_name)
+                                   clm_map_user['Quarter'].append(int(quarter_file.strip('.json')))
+                                   clm_map_user['Num_of_reg_users'].append(reg_users)
+                                   clm_map_user['Num_of_app_opens'].append(app_opens)
+   ```
+   - **Purpose:** Traverse the directory structure to open and read each JSON file, extract relevant data, and populate the dictionary `clm_map_user`. This process ensures all JSON files are processed and data is collected.
+
+7. **Create DataFrame and Apply Name Conversion:**
+   ```python
+   # Create DataFrame
+   Map_User = pd.DataFrame(clm_map_user)
+
+   # Update the 'State' and 'Dist_Name' columns to be suitable for geovisualization
+   Map_User['State'] = Map_User['State'].apply(convert_state_name)
+   Map_User['Dist_Name'] = Map_User['Dist_Name'].apply(convert_state_name)
+   ```
+   - **Purpose:** Convert the dictionary to a Pandas DataFrame. Apply the name conversion function to the 'State' and 'Dist_Name' columns to ensure consistent formatting for visualization.
+
+8. **Store DataFrame in MySQL Table:**
+   ```python
+   # Store the updated DataFrame into the MySQL table
+   table_name = 'map_user'
+   Map_User.to_sql(name=table_name, con=engine, if_exists='replace', index=False)
+   ```
+   - **Purpose:** Save the DataFrame to a MySQL table named `map_user`. The `if_exists='replace'` parameter ensures the table is replaced if it already exists, keeping the data updated.
+
+9. **Close Initial MySQL Connection:**
+   ```python
+   # Close the initial MySQL connection
+   conn.close()
+   ```
+   - **Purpose:** Close the initial MySQL connection that was established at the beginning.
+
+10. **Reopen Connection Using SQLAlchemy and Read Table:**
+    ```python
+    # Reopen the connection using SQLAlchemy for reading the table
+    conn = engine.connect()
+
+    # Read the table into a DataFrame
+    df = pd.read_sql_table(table_name, con=conn)
+
+    # Display the DataFrame
+    print(df)
+
+    # Close the connection
+    conn.close()
+    ```
+    - **Purpose:** Reopen the connection using SQLAlchemy to read the `map_user` table into a DataFrame. Print the DataFrame to verify that the data was correctly stored and then close the connection.
+
 
