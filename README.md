@@ -1242,3 +1242,123 @@ print(df)
 conn.close()
 ```
 - **Purpose:** Reopen the connection using SQLAlchemy to read the `top_user_dis` table into a DataFrame. Print the DataFrame to verify that the data has been correctly stored. Finally, close the connection.
+
+### WORKFLOW
+
+### 1. **Import Required Libraries**
+```python
+import os
+import json
+import pandas as pd
+import mysql.connector
+from sqlalchemy import create_engine
+```
+- **Purpose:** Import necessary libraries for file operations, JSON parsing, data manipulation with Pandas, and database interactions using MySQL and SQLAlchemy.
+
+### 2. **Define MySQL Connection Details**
+```python
+host = 'localhost'
+user = 'root'
+password = '1611'
+database = 'PhonePePulse_DVandExp'
+```
+- **Purpose:** Specify the connection details for accessing the MySQL database.
+
+### 3. **Create a Connection to MySQL**
+```python
+conn = mysql.connector.connect(
+    host=host,
+    user=user,
+    password=password,
+    database=database
+)
+```
+- **Purpose:** Establish a connection to the MySQL database using the provided credentials.
+
+### 4. **Create SQLAlchemy Engine**
+```python
+engine = create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{database}")
+```
+- **Purpose:** Create an SQLAlchemy engine to facilitate interactions with the MySQL database.
+
+### 5. **Define Helper Function for Name Conversion**
+```python
+def convert_state_name(input_string):
+    # Replace hyphens and special characters with spaces, then capitalize each word
+    formatted_string = input_string.replace('-', ' ').replace('&', '&')
+    words = formatted_string.split()
+    capitalized_words = [word.capitalize() for word in words]
+    return ' '.join(capitalized_words)
+```
+- **Purpose:** Define a function to format state names by replacing hyphens with spaces and capitalizing each word. This ensures consistent naming for geovisualization.
+
+### 6. **Define Path and Extract Data from JSON Files**
+```python
+path = "C:\\Users\\HP\\GUVI PROJ\\pulse\\data\\top\\user\\country\\india\\state"
+clm_top_user_pin = {'Pin_Code': [], 'State': [], 'Year': [], 'Quarter': [], 'Reg_Users': []}
+
+for state in os.listdir(path):
+    state_path = os.path.join(path, state)
+    if os.path.isdir(state_path):
+        for year in os.listdir(state_path):
+            year_path = os.path.join(state_path, year)
+            if os.path.isdir(year_path):
+                for quarter_file in os.listdir(year_path):
+                    quarter_path = os.path.join(year_path, quarter_file)
+                    if quarter_file.endswith('.json'):
+                        with open(quarter_path, 'r') as file:
+                            data = json.load(file)
+
+                            if 'data' in data and 'pincodes' in data['data']:
+                                pincodes = data['data']['pincodes']
+
+                            for pin in pincodes:
+                                code = pin['name']
+                                reg_users = pin['registeredUsers']
+                                clm_top_user_pin['Year'].append(year)
+                                clm_top_user_pin['Quarter'].append(int(quarter_file.strip('.json')))
+                                clm_top_user_pin['Pin_Code'].append(code)
+                                clm_top_user_pin['Reg_Users'].append(reg_users)
+                                clm_top_user_pin['State'].append(state)
+```
+- **Purpose:** Traverse the directory structure to find and process JSON files. Extract data about pincodes, including the number of registered users, and append this data to the `clm_top_user_pin` dictionary.
+
+### 7. **Create DataFrame and Apply Name Conversion**
+```python
+# Create DataFrame
+Top_User_pin = pd.DataFrame(clm_top_user_pin)
+
+# Update the 'State' column to be suitable for geovisualization
+Top_User_pin['State'] = Top_User_pin['State'].apply(convert_state_name)
+```
+- **Purpose:** Convert the dictionary `clm_top_user_pin` into a Pandas DataFrame. Apply the `convert_state_name` function to format the 'State' column for consistency.
+
+### 8. **Store DataFrame in MySQL Table**
+```python
+table_name = 'top_user_pin'
+Top_User_pin.to_sql(name=table_name, con=engine, if_exists='replace', index=False)
+```
+- **Purpose:** Save the DataFrame to a MySQL table named `top_user_pin`. The `if_exists='replace'` parameter ensures that the table is replaced if it already exists, allowing for fresh data insertion.
+
+### 9. **Close Initial MySQL Connection**
+```python
+conn.close()
+```
+- **Purpose:** Close the initial MySQL connection that was used to set up the SQLAlchemy engine.
+
+### 10. **Reopen Connection Using SQLAlchemy and Read Table**
+```python
+# Reopen the connection using SQLAlchemy for reading the table
+conn = engine.connect()
+
+# Read the table into a DataFrame
+df = pd.read_sql_table(table_name, con=conn)
+
+# Display the DataFrame
+print(df)
+
+# Close the connection
+conn.close()
+```
+- **Purpose:** Reopen the connection using SQLAlchemy to read the `top_user_pin` table into a DataFrame. Print the DataFrame to verify that the data has been correctly stored. Finally, close the connection.
+
