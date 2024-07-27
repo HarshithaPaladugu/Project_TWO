@@ -1000,3 +1000,125 @@ conn.close()
 ```
 - **Purpose:** Reopen the connection using SQLAlchemy to read the `top_trans_dist` table into a DataFrame. Print the DataFrame to verify that the data has been correctly stored. Finally, close the connection.
 
+### WORKFLOW
+
+### 1. **Import Required Libraries**
+```python
+import os
+import json
+import pandas as pd
+import mysql.connector
+from sqlalchemy import create_engine
+```
+- **Purpose:** Import libraries necessary for file operations, JSON parsing, data manipulation, and database interactions.
+
+### 2. **Define MySQL Connection Details**
+```python
+host = 'localhost'
+user = 'root'
+password = '1611'
+database = 'PhonePePulse_DVandExp'
+```
+- **Purpose:** Specify the credentials and database information required to connect to the MySQL server.
+
+### 3. **Create a Connection to MySQL**
+```python
+conn = mysql.connector.connect(
+    host=host,
+    user=user,
+    password=password,
+    database=database
+)
+```
+- **Purpose:** Establish a connection to the MySQL database using the provided credentials.
+
+### 4. **Create SQLAlchemy Engine**
+```python
+engine = create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{database}")
+```
+- **Purpose:** Create an SQLAlchemy engine for handling database operations like reading from and writing to MySQL tables.
+
+### 5. **Define Helper Function for Name Conversion**
+```python
+def convert_state_name(input_string):
+    # Replace hyphens and special characters with spaces, then capitalize each word
+    formatted_string = input_string.replace('-', ' ').replace('&', '&')
+    words = formatted_string.split()
+    capitalized_words = [word.capitalize() for word in words]
+    return ' '.join(capitalized_words)
+```
+- **Purpose:** Define a function to format state names by replacing hyphens with spaces and capitalizing each word. This is done to ensure names are properly formatted for geovisualization.
+
+### 6. **Define Path and Extract Data from JSON Files**
+```python
+path = "C:\\Users\\HP\\GUVI PROJ\\pulse\\data\\top\\transaction\\country\\india\\state\\"
+clm_top_trans_pin = {'Pincode': [], 'State': [], 'Year': [], 'Quarter': [], 'Tot_No_of_PTrans': [], 'Tot_Val_of_PTrans': []}
+
+for state in os.listdir(path):
+    state_path = os.path.join(path, state)
+    if os.path.isdir(state_path):
+        for year in os.listdir(state_path):
+            year_path = os.path.join(state_path, year)
+            if os.path.isdir(year_path):
+                for quarter_file in os.listdir(year_path):
+                    quarter_path = os.path.join(year_path, quarter_file)
+                    if quarter_file.endswith('.json'):
+                        with open(quarter_path, 'r') as file:
+                            data = json.load(file)
+                            
+                            # Check if 'data' key exists
+                            if 'data' in data and 'pincodes' in data['data']:
+                                pincodes = data['data']['pincodes']
+
+                            for pincode in pincodes:
+                                entity_name = pincode['entityName']
+                                metric = pincode['metric']
+                                count = metric['count']
+                                amount = metric['amount']
+                                clm_top_trans_pin['Year'].append(year)
+                                clm_top_trans_pin['Quarter'].append(int(quarter_file.strip('.json')))
+                                clm_top_trans_pin['Pincode'].append(entity_name)
+                                clm_top_trans_pin['Tot_No_of_PTrans'].append(count)
+                                clm_top_trans_pin['Tot_Val_of_PTrans'].append(amount)
+                                clm_top_trans_pin['State'].append(state)
+```
+- **Purpose:** Traverse the directory structure to locate and process JSON files. For each file, extract data about pincodes, including transaction counts and amounts, and append this information to the `clm_top_trans_pin` dictionary.
+
+### 7. **Create DataFrame and Apply Name Conversion**
+```python
+# Create DataFrame
+Top_Trans_Pin = pd.DataFrame(clm_top_trans_pin)
+
+# Update the 'State' column to be suitable for geovisualization
+Top_Trans_Pin['State'] = Top_Trans_Pin['State'].apply(convert_state_name)
+```
+- **Purpose:** Convert the `clm_top_trans_pin` dictionary into a Pandas DataFrame. Apply the `convert_state_name` function to format the 'State' column for consistent naming.
+
+### 8. **Store DataFrame in MySQL Table**
+```python
+table_name = 'top_trans_pin'
+Top_Trans_Pin.to_sql(name=table_name, con=engine, if_exists='replace', index=False)
+```
+- **Purpose:** Save the DataFrame to a MySQL table named `top_trans_pin`. The `if_exists='replace'` parameter ensures that the table is replaced if it already exists, allowing for fresh data insertion.
+
+### 9. **Close Initial MySQL Connection**
+```python
+conn.close()
+```
+- **Purpose:** Close the initial MySQL connection that was used to set up the SQLAlchemy engine.
+
+### 10. **Reopen Connection Using SQLAlchemy and Read Table**
+```python
+# Reopen the connection using SQLAlchemy for reading the table
+conn = engine.connect()
+
+# Read the table into a DataFrame
+df = pd.read_sql_table(table_name, con=conn)
+
+# Display the DataFrame
+print(df)
+
+# Close the connection
+conn.close()
+```
+- **Purpose:** Reopen the connection using SQLAlchemy to read the `top_trans_pin` table into a DataFrame. Print the DataFrame to verify that the data has been correctly stored. Finally, close the connection.
