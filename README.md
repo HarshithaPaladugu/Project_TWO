@@ -1362,3 +1362,107 @@ conn.close()
 ```
 - **Purpose:** Reopen the connection using SQLAlchemy to read the `top_user_pin` table into a DataFrame. Print the DataFrame to verify that the data has been correctly stored. Finally, close the connection.
 
+
+### Workflow and Execution
+
+1. **Import Required Libraries:**
+   ```python
+   import os
+   import json
+   import pandas as pd
+   import mysql.connector
+   from sqlalchemy import create_engine
+   ```
+   - Imports necessary libraries for handling files, JSON data, data manipulation, and database connections.
+
+2. **Define MySQL Connection Details:**
+   ```python
+   host = 'localhost'
+   user = 'root'
+   password = '1611'
+   database = 'PhonePePulse_DVandExp'
+   ```
+   - Defines the connection parameters to connect to the MySQL database.
+
+3. **Create MySQL Connection:**
+   ```python
+   conn = mysql.connector.connect(
+       host=host,
+       user=user,
+       password=password,
+       database=database
+   )
+   ```
+   - Establishes a connection to the MySQL database using `mysql.connector`.
+
+4. **Create SQLAlchemy Engine:**
+   ```python
+   engine = create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{database}")
+   ```
+   - Creates a SQLAlchemy engine for SQL operations using `mysql+mysqlconnector` dialect.
+
+5. **Connect Using SQLAlchemy Engine:**
+   ```python
+   conn = engine.connect()
+   ```
+   - Opens a connection to the database through the SQLAlchemy engine.
+
+6. **Define Table Names:**
+   ```python
+   table_name_1 = 'map_trans'
+   table_name_2 = 'map_user'
+   table_name_3 = 'agg_transaction'
+   table_name_4 = 'agg_user'
+   table_name_5 = 'top_trans_state'
+   table_name_6 = 'top_trans_dis'
+   table_name_7 = 'top_trans_pin'
+   table_name_8 = 'top_user_dis'
+   table_name_9 = 'top_user_pin'
+   ```
+   - Lists the names of tables from which data will be read.
+
+7. **Read Data from Each Table:**
+   ```python
+   df_1 = pd.read_sql_table(table_name_1, con=conn)
+   df_2 = pd.read_sql_table(table_name_2, con=conn)
+   df_3 = pd.read_sql_table(table_name_3, con=conn)
+   df_4 = pd.read_sql_table(table_name_4, con=conn)
+   df_5 = pd.read_sql_table(table_name_5, con=conn)
+   df_6 = pd.read_sql_table(table_name_6, con=conn)
+   df_7 = pd.read_sql_table(table_name_7, con=conn)
+   df_8 = pd.read_sql_table(table_name_8, con=conn)
+   df_9 = pd.read_sql_table(table_name_9, con=conn)
+   ```
+   - Reads data from each table into a DataFrame using `pd.read_sql_table()`.
+
+8. **Print DataFrames:**
+   ```python
+   print(table_name_1)
+   print(df_1)
+   print(table_name_2)
+   print(df_2)
+   print(table_name_3)
+   print(df_3)
+   print(table_name_4)
+   print(df_4)
+   print(table_name_5)
+   print(df_5)
+   print(table_name_6)
+   print(df_6)
+   print(table_name_7)
+   print(df_7)
+   print(table_name_8)
+   print(df_8)
+   print(table_name_9)
+   print(df_9)
+   ```
+   - Prints each table name followed by its corresponding DataFrame to the console for verification.
+
+9. **Close the Database Connection:**
+   ```python
+   conn.close()
+   ```
+   - Closes the connection to the database.
+
+
+This workflow ensures that data from various tables is successfully retrieved and displayed, and that the database connection is managed correctly throughout the process.
