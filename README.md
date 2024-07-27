@@ -251,7 +251,7 @@ except Exception as e:
 By following these steps, you can create a Streamlit application that visualizes and explores PhonePe Pulse data, providing users with insights based on their selections. Adjust the queries and visualization logic for each specific insight to ensure comprehensive data representation.
 
 #SecallTables.ipynb:
-Here's a detailed breakdown of the workflow and execution for each part of the provided code:
+
 
 ### 1. Import Necessary Libraries
 Import the required libraries at the beginning of your script:
@@ -370,4 +370,134 @@ print(df)
 # Close the connection
 conn.close()
 ```
+### Workflow and Execution of the Provided Code
+
+The given code processes JSON files containing user data by device, transforms the data, and stores it in a MySQL database. Here is a breakdown of the workflow and execution for each part of the code:
+
+1. **Import Necessary Libraries:**
+   ```python
+   import os
+   import json
+   import pandas as pd
+   import mysql.connector
+   from sqlalchemy import create_engine
+   ```
+   - **Purpose:** Import libraries needed for file handling (`os`), JSON processing (`json`), data manipulation (`pandas`), and database interaction (`mysql.connector` and `sqlalchemy`).
+
+2. **Define MySQL Connection Details:**
+   ```python
+   # MySQL connection details
+   host = 'localhost'
+   user = 'root'
+   password = '1611'
+   database = 'PhonePePulse_DVandExp'
+   ```
+   - **Purpose:** Define the necessary details to connect to the MySQL database.
+
+3. **Create a Connection to MySQL:**
+   ```python
+   # Create a connection to MySQL
+   conn = mysql.connector.connect(
+       host=host,
+       user=user,
+       password=password,
+       database=database
+   )
+   ```
+   - **Purpose:** Establish a connection to the MySQL database using the defined connection details.
+
+4. **Create SQLAlchemy Engine:**
+   ```python
+   engine = create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{database}")
+   ```
+   - **Purpose:** Create an SQLAlchemy engine to interact with the MySQL database, facilitating read/write operations.
+
+5. **Define Path to JSON Files and Dictionary to Store Data:**
+   ```python
+   # Define the path to the directory containing JSON files
+   path = "C:\\Users\\HP\\GUVI PROJ\\pulse\\data\\aggregated\\user\\country\\india\\state\\"
+
+   # Dictionary to store extracted data
+   clm_user = {'State': [], 'Year': [], 'Quarter': [], 'Brand_Name': [], 'Num_of_Reg_Users': [], 'Percent_Share': []}
+   ```
+   - **Purpose:** Specify the directory path containing JSON files and create a dictionary to store extracted data.
+
+6. **Define Helper Function for State Name Conversion:**
+   ```python
+   # Function to convert state names for geovisualization
+   def convert_state_name(input_string):
+       # Replace hyphens and special characters with spaces, then capitalize each word
+       formatted_string = input_string.replace('-', ' ').replace('&', '&')
+       words = formatted_string.split()
+       capitalized_words = [word.capitalize() for word in words]
+       return ' '.join(capitalized_words)
+   ```
+   - **Purpose:** Define a function to format state names by replacing hyphens and capitalizing each word for better readability and consistency.
+
+7. **Iterate Through JSON Files and Extract Data:**
+   ```python
+   # Iterate through each state directory
+   for state in os.listdir(path):
+       state_path = os.path.join(path, state)
+       if os.path.isdir(state_path):
+           for year in os.listdir(state_path):
+               year_path = os.path.join(state_path, year)
+               if os.path.isdir(year_path):
+                   for quarter_file in os.listdir(year_path):
+                       quarter_path = os.path.join(year_path, quarter_file)
+                       if quarter_file.endswith('.json'):
+                           with open(quarter_path, 'r') as file:
+                               data = json.load(file)
+                               if data['data'] and 'usersByDevice' in data['data'] and data['data']['usersByDevice'] is not None:
+                                   for device in data['data']['usersByDevice']:
+                                       clm_user['State'].append(state)
+                                       clm_user['Year'].append(year)
+                                       clm_user['Quarter'].append(int(quarter_file.strip('.json')))
+                                       clm_user['Brand_Name'].append(device['brand'])
+                                       clm_user['Num_of_Reg_Users'].append(device['count'])
+                                       clm_user['Percent_Share'].append(device['percentage'])
+   ```
+   - **Purpose:** Traverse the directory structure, open each JSON file, extract relevant data, and populate the dictionary. The nested loops ensure all files are processed.
+
+8. **Create DataFrame and Apply State Name Conversion:**
+   ```python
+   # Create DataFrame
+   Agg_User = pd.DataFrame(clm_user)
+
+   # Update the 'State' column to be suitable for geovisualization
+   Agg_User['State'] = Agg_User['State'].apply(convert_state_name)
+   ```
+   - **Purpose:** Convert the dictionary to a Pandas DataFrame and apply the state name conversion function to the 'State' column.
+
+9. **Store DataFrame in MySQL Table:**
+   ```python
+   # Store the updated DataFrame into the MySQL table
+   table_name = 'agg_user'
+   Agg_User.to_sql(name=table_name, con=engine, if_exists='replace', index=False)
+   ```
+   - **Purpose:** Store the DataFrame in a MySQL table named `agg_user`. The `if_exists='replace'` parameter ensures the table is replaced if it already exists.
+
+10. **Close Initial MySQL Connection:**
+    ```python
+    # Close the initial MySQL connection
+    conn.close()
+    ```
+    - **Purpose:** Close the initial connection to the MySQL database.
+
+11. **Reopen Connection Using SQLAlchemy and Read Table:**
+    ```python
+    # Reopen the connection using SQLAlchemy for reading the table
+    conn = engine.connect()
+
+    # Read the table into a DataFrame
+    df = pd.read_sql_table(table_name, con=conn)
+
+    # Display the DataFrame
+    print(df)
+
+    # Close the connection
+    conn.close()
+    ```
+    - **Purpose:** Reopen the connection to the MySQL database using SQLAlchemy, read the `agg_user` table into a Pandas DataFrame, print the DataFrame, and close the connection.
+
 
