@@ -249,3 +249,125 @@ except Exception as e:
     st.write("Error connecting to the database:", str(e))
 ```
 By following these steps, you can create a Streamlit application that visualizes and explores PhonePe Pulse data, providing users with insights based on their selections. Adjust the queries and visualization logic for each specific insight to ensure comprehensive data representation.
+
+#SecallTables.ipynb:
+Here's a detailed breakdown of the workflow and execution for each part of the provided code:
+
+### 1. Import Necessary Libraries
+Import the required libraries at the beginning of your script:
+```python
+import mysql.connector
+from sqlalchemy import create_engine, Column, Integer, String, Float, MetaData, Table
+from sqlalchemy.ext.declarative import declarative_base
+import pandas as pd
+import json
+import os
+```
+
+### 2. Define MySQL Connection Details
+Set up the connection details for your MySQL database:
+```python
+# MySQL connection details
+host = 'localhost'
+user = 'root'
+password = '1611'
+database = 'PhonePePulse_DVandExp'
+
+# Create a connection
+conn = mysql.connector.connect(
+    host=host,
+    user=user,
+    password=password,
+    database=database
+)
+```
+
+### 3. Define Helper Function for State Name Conversion
+Define a helper function to format state names correctly:
+```python
+def convert_state_name(input_string):
+    # Replace hyphens and special characters with spaces, then capitalize each word
+    formatted_string = input_string.replace('-', ' ').replace('&', '&')
+    words = formatted_string.split()
+    capitalized_words = [word.capitalize() for word in words]
+    return ' '.join(capitalized_words)
+```
+
+### 4. Create SQLAlchemy Engine
+Create an SQLAlchemy engine to interact with the MySQL database:
+```python
+# Create a SQLAlchemy engine
+engine = create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{database}")
+```
+
+### 5. Load Data from JSON Files
+Specify the path to your data and iterate over the files to load and process the JSON data:
+```python
+# Path to data
+path = "C:\\Users\\HP\\GUVI PROJ\\pulse\\data\\aggregated\\transaction\\country\\india\\state\\"
+Agg_state_list = os.listdir(path)
+
+# Prepare the DataFrame
+clm = {'State': [], 'Year': [], 'Quater': [], 'Transacion_type': [], 'Transacion_count': [], 'Transacion_amount': []}
+
+for i in Agg_state_list:
+    p_i = path + i + "/"
+    Agg_yr = os.listdir(p_i)
+    for j in Agg_yr:
+        p_j = p_i + j + "/"
+        Agg_yr_list = os.listdir(p_j)
+        for k in Agg_yr_list:
+            p_k = p_j + k
+            with open(p_k, 'r') as Data:
+                D = json.load(Data)
+                for z in D['data']['transactionData']:
+                    Name = z['name']
+                    count = z['paymentInstruments'][0]['count']
+                    amount = z['paymentInstruments'][0]['amount']
+                    clm['Transacion_type'].append(Name)
+                    clm['Transacion_count'].append(count)
+                    clm['Transacion_amount'].append(amount)
+                    clm['State'].append(i)
+                    clm['Year'].append(j)
+                    clm['Quater'].append(int(k.strip('.json')))
+```
+
+### 6. Create and Populate DataFrame
+Create a DataFrame from the loaded data and format the state names:
+```python
+# Create DataFrame
+Agg_Trans = pd.DataFrame(clm)
+Agg_Trans['State'] = Agg_Trans['State'].apply(convert_state_name)
+```
+
+### 7. Store DataFrame to MySQL Table
+Store the DataFrame in a MySQL table, replacing any existing data in the table:
+```python
+# Store DataFrame to MySQL table (ensure the table name is in lowercase)
+table_name = 'agg_transaction'
+Agg_Trans.to_sql(name=table_name, con=engine, if_exists='replace', index=False)
+```
+
+### 8. Close Initial Connection
+Close the initial connection to the MySQL database:
+```python
+# Close the connection
+conn.close()
+```
+
+### 9. Reopen Connection and Read Table
+Reopen the connection using SQLAlchemy to read the table into a DataFrame and display the data:
+```python
+# Reopen the connection using SQLAlchemy for reading the table
+conn = engine.connect()
+
+# Read the table into a DataFrame
+df = pd.read_sql_table(table_name, con=conn)
+
+# Display the DataFrame
+print(df)
+
+# Close the connection
+conn.close()
+```
+
